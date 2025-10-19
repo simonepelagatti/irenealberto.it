@@ -100,6 +100,9 @@ serve(async (req) => {
 async function sendAdminEmail(orderData: OrderEmailData) {
   const html = generateAdminEmailHTML(orderData)
 
+  // Parse multiple admin emails (comma-separated)
+  const adminEmails = ADMIN_EMAIL.split(',').map(email => email.trim())
+
   const res = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -108,7 +111,7 @@ async function sendAdminEmail(orderData: OrderEmailData) {
     },
     body: JSON.stringify({
       from: FROM_EMAIL,
-      to: [ADMIN_EMAIL],
+      to: adminEmails,
       subject: `🎁 Nuovo regalo ricevuto! - ${orderData.sessionCode}`,
       html: html,
     }),
