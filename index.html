@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Irene & Alberto — Lista Regalo Viaggio di Nozze</title>
+    <meta name="description" content="Regala un pezzo del nostro viaggio di nozze in Sud America. Scegli un'esperienza tra Chile, Argentina e Brasile." />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  </head>
+  <body>
+    <main id="main">
+      <!-- HERO 1 -->
+      <section class="hero hero--primary" aria-labelledby="hero1-title">
+        <div class="container hero-inner">
+          <div class="hero-illustration" aria-hidden="true">
+            <img src="CITTA.png" alt="Bologna skyline" style="max-width: 400px; width: 100%; opacity: 0.3;" />
+          </div>
+          <div class="event-badge" aria-label="Dettagli evento nozze">
+            <img src="NOMI.png" alt="Irene e Alberto" style="max-width: 280px; margin: 0 auto;" />
+            <div class="date" style="margin-top: 8px; font-weight: 800; color: var(--brand);">6 dicembre 2025</div>
+            <div class="tag">Lista regalo — Viaggio di Nozze</div>
+          </div>
+          <h1 id="hero1-title" class="display">Regala un pezzo del nostro viaggio</h1>
+          <p class="lead" style="max-width:820px">Al posto dei regali tradizionali, ci piacerebbe portare con noi i vostri pensieri in luna di miele. Scegliete una piccola esperienza tra le proposte qui sotto: sarà un ricordo dedicato a voi.</p>
+          <div class="features">
+            <div class="feature">
+              <div>
+                <h3>Scegli l’esperienza</h3>
+                <p>Scorri le schede, apri i dettagli e trova l’idea che vuoi regalarci.</p>
+              </div>
+            </div>
+            <div class="feature">
+              <div>
+                <h3>Aggiungi al regalo</h3>
+                <p>Con un click metti l’esperienza nel carrello e ottieni il codice dedicato.</p>
+              </div>
+            </div>
+            <div class="feature">
+              <div>
+                <h3>Bonifico con causale</h3>
+                <p>Usa il codice nella causale del bonifico: lo assoceremo al tuo regalo.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CAROUSEL -->
+      <section class="destinations" aria-labelledby="dest-title">
+        <div class="container">
+          <h2 id="dest-title" class="section-title">Il nostro viaggio</h2>
+          <div class="carousel" data-carousel>
+            <button class="nav prev" data-prev aria-label="Precedente">‹</button>
+            <div class="track" data-track aria-live="polite"></div>
+            <button class="nav next" data-next aria-label="Successivo">›</button>
+          </div>
+          <p class="hint">Tocca o premi sulla scheda per scoprire i dettagli.</p>
+        </div>
+      </section>
+
+      <!-- HERO 2 / INFO -->
+      <section class="hero hero--secondary" aria-labelledby="hero2-title">
+        <div class="container hero-inner">
+          <h2 id="hero2-title" class="display">Come fare il regalo</h2>
+          <p class="lead">È semplicissimo: scegli una o più esperienze, completa il checkout per ricevere un codice univoco e usalo nella causale del bonifico. Quel codice ci permetterà di associare il tuo pensiero alla tappa del viaggio che hai scelto.</p>
+          <ul class="steps">
+            <li><strong>1. Scegli</strong> una scheda e premi “Aggiungi al regalo”. Ogni esperienza può essere selezionata una sola volta.</li>
+            <li><strong>2. Apri il carrello</strong> (icona 🛒), inserisci <em>nome</em> e un breve <em>messaggio</em> e premi “Completa il regalo”.</li>
+            <li><strong>3. Ricevi il codice</strong> (es. <code>251206-ABC12</code>) da inserire nella causale del bonifico.</li>
+          </ul>
+
+          <p class="lead">Grazie di cuore per condividere con noi questo momento!<br/> Ogni contributo diventerà un ricordo del nostro viaggio di nozze.</p>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <small>Irene & Alberto — 6 dicembre 2025</small>
+      </div>
+    </footer>
+
+    <!-- Floating Cart Button -->
+    <button class="cart-fab" aria-haspopup="dialog" aria-controls="cart-dialog" aria-label="Apri carrello" hidden>
+      <span class="cart-count" data-cart-count>0</span>
+      🛒
+    </button>
+
+    <!-- Cart / Checkout Modal -->
+    <div class="modal" id="cart-dialog" role="dialog" aria-modal="true" aria-labelledby="cart-title" hidden>
+      <div class="modal__backdrop" data-close-modal></div>
+      <div class="modal__content" role="document">
+        <header class="modal__header">
+          <h2 id="cart-title">Il tuo regalo</h2>
+          <button class="modal__close" title="Chiudi" aria-label="Chiudi" data-close-modal>×</button>
+        </header>
+        <div class="modal__body" data-cart-view>
+          <!-- Empty Cart Message -->
+          <div class="empty-cart-message" data-empty-cart hidden>
+            <div style="text-align: center; padding: 40px 20px;">
+              <div style="font-size: 3rem; margin-bottom: 16px; opacity: 0.3;">🎁</div>
+              <h3 style="margin: 0 0 12px; color: var(--brand);">Il carrello è vuoto</h3>
+              <p style="color: var(--muted); margin: 0;">Scegli una o più esperienze dal nostro viaggio per iniziare a comporre il tuo regalo.</p>
+            </div>
+          </div>
+
+          <ul class="cart-list" data-cart-list></ul>
+
+          <!-- Cart Total Summary -->
+          <div class="cart-total-summary">
+            <div class="total-row">
+              <span class="total-label">Contributo suggerito totale:</span>
+              <span class="total-value" data-cart-total>€0.00</span>
+            </div>
+            <p class="total-hint">Questo è un importo indicativo. Puoi contribuire con l'importo che preferisci.</p>
+          </div>
+
+          <form class="checkout" data-checkout-form>
+            <div class="field">
+              <label for="guest-name">Il tuo nome</label>
+              <input id="guest-name" name="name" type="text" required />
+            </div>
+            <div class="field">
+              <label for="guest-email">Email (facoltativa)</label>
+              <input id="guest-email" name="email" type="email" placeholder="tua@email.com" />
+              <small style="color: var(--muted); font-size: 0.85rem; margin-top: 4px;">Se inserisci la tua email, riceverai un riepilogo con il codice e i dati per il bonifico.</small>
+            </div>
+            <div class="field">
+              <label for="guest-message">Messaggio</label>
+              <textarea id="guest-message" name="message" rows="3" placeholder="Scrivi un pensiero…"></textarea>
+            </div>
+            <button class="btn-primary" type="submit">Completa il regalo</button>
+          </form>
+        </div>
+        <div class="modal__body" data-confirm-view hidden>
+          <div class="print-content">
+            <h3>Grazie! Ecco il tuo codice:</h3>
+            <p class="code" data-session-code>—</p>
+
+            <!-- Order Summary -->
+            <div class="order-summary" style="margin-top: 20px; padding: 16px; background: #f7fbfa; border-radius: 12px;">
+              <h4 style="margin-top: 0; margin-bottom: 12px; color: var(--brand);">Riepilogo Regalo</h4>
+              <div data-order-items></div>
+              <div style="margin-top: 12px; padding-top: 12px; border-top: 2px solid var(--brand); display: flex; justify-content: space-between; align-items: center; font-weight: 800; font-size: 1.1rem; color: var(--brand);">
+                <span>Contributo suggerito:</span>
+                <span data-order-total>€0.00</span>
+              </div>
+              <p class="muted" style="font-size: 0.85rem; margin-top: 8px; margin-bottom: 0;">Importo indicativo - puoi contribuire con l'importo che preferisci.</p>
+            </div>
+
+            <div class="bank-card" style="margin-top: 20px; text-align: left;">
+              <h4 style="margin-top: 0;">Dati per il bonifico</h4>
+              <p><strong>IBAN:</strong> IT86C0538702404000004570095</p>
+              <p><strong>Intestato a:</strong> Guizzardi Alberto, Cominotti Irene</p>
+              <p><strong>Banca:</strong> BPER BANCA SPA — Bologna ag 4</p>
+              <p style="margin-top: 16px;">Effettua il bonifico indicando nella causale:</p>
+              <p class="bank-causale"><strong>Causale:</strong> <span>Regalo Viaggio — Irene &amp; Alberto — Codice: <span data-session-code-causale style="font-weight: 900; color: #543647;"></span></span></p>
+              <p class="muted" style="font-size: 0.9rem;">Conserva questo codice per associare il tuo regalo al viaggio!</p>
+            </div>
+
+            <div class="print-footer" style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e6eceb; text-align: center; color: var(--muted); font-size: 0.9rem;">
+              <p style="margin: 0;">Irene & Alberto — 6 dicembre 2025</p>
+              <p style="margin: 4px 0 0;">Lista regalo viaggio di nozze</p>
+            </div>
+          </div>
+
+          <div class="no-print" style="display: flex; gap: 12px; margin-top: 16px; flex-wrap: wrap;">
+            <button class="btn-primary" onclick="window.print()" style="flex: 1; min-width: 140px;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 6px;">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Stampa Riepilogo
+            </button>
+            <button class="btn-secondary" data-done style="flex: 1; min-width: 100px;">Chiudi</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="supabase-client.js"></script>
+    <script src="script.js" defer></script>
+  </body>
+  </html>
