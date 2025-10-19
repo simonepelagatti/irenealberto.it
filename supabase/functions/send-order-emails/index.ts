@@ -17,6 +17,7 @@ interface OrderItem {
   title: string
   description: string
   unitPrice: number
+  quantity: number
   isBackHome: boolean
 }
 
@@ -152,9 +153,11 @@ async function sendGuestEmail(orderData: OrderEmailData) {
 
 function generateAdminEmailHTML(orderData: OrderEmailData): string {
   const itemsHTML = orderData.items.map(item => {
+    const quantity = item.quantity || 1
+    const itemTotal = item.unitPrice * quantity
     const priceDisplay = item.isBackHome
       ? '<span style="color: #4a7c59;">Libera offerta</span>'
-      : `€${item.unitPrice.toFixed(2)}`
+      : `${quantity} × €${item.unitPrice.toFixed(2)} = €${itemTotal.toFixed(2)}`
 
     return `
       <tr>
@@ -222,15 +225,18 @@ function generateAdminEmailHTML(orderData: OrderEmailData): string {
 
 function generateGuestEmailHTML(orderData: OrderEmailData): string {
   const itemsHTML = orderData.items.map(item => {
+    const quantity = item.quantity || 1
+    const itemTotal = item.unitPrice * quantity
+    const quantityText = quantity > 1 ? `${quantity} pacchetti` : '1 pacchetto'
     const priceDisplay = item.isBackHome
       ? '<span style="color: #4a7c59;">Libera offerta</span>'
-      : `€${item.unitPrice.toFixed(2)}`
+      : `${quantity} × €${item.unitPrice.toFixed(2)} = €${itemTotal.toFixed(2)}`
 
     return `
       <tr>
         <td style="padding: 12px; border-bottom: 1px solid #e0e0e0;">
           <strong>${item.title}</strong><br>
-          <small style="color: #666;">1 pacchetto</small>
+          <small style="color: #666;">${quantityText}</small>
         </td>
         <td style="padding: 12px; border-bottom: 1px solid #e0e0e0; text-align: right; font-weight: bold;">
           ${priceDisplay}

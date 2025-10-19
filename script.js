@@ -68,13 +68,28 @@ function renderCard(item){
     contentWrapper
   );
 
+  // Add quantity selector and button container
+  const actionContainer = el('div', { className: 'card-actions' });
+
+  if (!isSoldOut && !isBackHome) {
+    // Quantity selector (only for non-back-home items with availability)
+    const quantitySelector = el('div', { className: 'quantity-selector' });
+    quantitySelector.innerHTML = `
+      <button class="qty-btn qty-minus" data-action="minus" aria-label="Diminuisci quantità">−</button>
+      <span class="qty-value" data-qty-display>1</span>
+      <button class="qty-btn qty-plus" data-action="plus" aria-label="Aumenta quantità">+</button>
+    `;
+    actionContainer.append(quantitySelector);
+  }
+
   const cta = el('button', { className: 'cta', disabled: isSoldOut, textContent: isSoldOut ? 'Esaurito' : 'Aggiungi al regalo' });
   cta.dataset.experienceId = item.id;
   if (!isSoldOut) {
     cta.style.opacity = '1';
     cta.style.cursor = 'pointer';
   }
-  back.append(cta);
+  actionContainer.append(cta);
+  back.append(actionContainer);
 
   inner.append(front, back);
   card.append(inner);
@@ -141,26 +156,49 @@ async function initCarousel(){
   next?.addEventListener('click', ()=> scrollByDir(1));
 }
 
-// --- Simple session cart ---
-const CART_KEY = 'gift_cart_v1';
+// --- Simple session cart with quantities ---
+const CART_KEY = 'gift_cart_v2'; // Changed key to reset old carts
 const SESSION_KEY = 'gift_session_v1';
 
 const cart = {
-  // items as Set of ids
-  _set: new Set(),
+  // items as Map of id -> quantity
+  _items: new Map(),
   load(){
     try{
       const raw = localStorage.getItem(CART_KEY);
-      this._set = new Set(raw ? JSON.parse(raw) : []);
-    }catch{ this._set = new Set(); }
+      const data = raw ? JSON.parse(raw) : [];
+      this._items = new Map(data);
+    }catch{ this._items = new Map(); }
   },
-  save(){ localStorage.setItem(CART_KEY, JSON.stringify([...this._set])); },
-  has(id){ return this._set.has(id); },
-  add(id){ this._set.add(id); this.save(); },
-  remove(id){ this._set.delete(id); this.save(); },
-  clear(){ this._set.clear(); this.save(); },
-  list(){ return DATA.filter(d=> this._set.has(d.id)); },
-  count(){ return this._set.size; }
+  save(){
+    localStorage.setItem(CART_KEY, JSON.stringify([...this._items]));
+  },
+  has(id){ return this._items.has(id); },
+  add(id, quantity = 1){
+    this._items.set(id, quantity);
+    this.save();
+  },
+  getQuantity(id){ return this._items.get(id) || 0; },
+  updateQuantity(id, quantity){
+    if (quantity <= 0) {
+      this._items.delete(id);
+    } else {
+      this._items.set(id, quantity);
+    }
+    this.save();
+  },
+  remove(id){ this._items.delete(id); this.save(); },
+  clear(){ this._items.clear(); this.save(); },
+  list(){
+    return DATA.filter(d=> this._items.has(d.id)).map(item => ({
+      ...item,
+      quantity: this._items.get(item.id)
+    }));
+  },
+  count(){ return this._items.size; },
+  getTotalPackages(){
+    return [...this._items.values()].reduce((sum, qty) => sum + qty, 0);
+  }
 };
 
 function updateCartBadge(){
@@ -214,12 +252,14 @@ function renderOrderSummary(items){
   for(const item of items){
     const isBackHome = item.id === 'back-home';
     const unitPrice = parseFloat(item.unit_price || 0);
+    const quantity = item.quantity || 1;
+    const itemTotal = unitPrice * quantity;
 
     if (isBackHome) {
       hasBackHome = true;
     } else if (unitPrice > 0) {
       hasPaidItems = true;
-      total += unitPrice;
+      total += itemTotal;
     }
 
     const row = document.createElement('div');
@@ -231,18 +271,20 @@ function renderOrderSummary(items){
       priceDisplay = 'Libera offerta';
       priceColor = 'var(--success)';
     } else if (unitPrice > 0) {
-      priceDisplay = `€${unitPrice.toFixed(2)}`;
+      priceDisplay = `${quantity} × €${unitPrice.toFixed(2)} = €${itemTotal.toFixed(2)}`;
     } else {
       priceDisplay = 'Incluso';
       priceColor = 'var(--muted)';
     }
 
+    const quantityText = quantity > 1 ? `${quantity} pacchetti` : '1 pacchetto';
+
     row.innerHTML = `
       <div style="flex: 1;">
         <div style="font-weight: 700; color: var(--brand);">${item.title}</div>
-        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">1 pacchetto</div>
+        <div style="font-size: 0.85rem; color: var(--muted); margin-top: 2px;">${quantityText}</div>
       </div>
-      <div style="font-weight: 700; color: ${priceColor};">${priceDisplay}</div>
+      <div style="font-weight: 700; color: ${priceColor}; text-align: right;">${priceDisplay}</div>
     `;
     itemsContainer.appendChild(row);
   }
@@ -322,20 +364,27 @@ function renderCartList(){
     // Check if this is the back-home package (free package)
     const isBackHome = item.id === 'back-home';
     const unitPrice = parseFloat(item.unit_price || 0);
+    const quantity = item.quantity || 1;
+    const itemTotal = unitPrice * quantity;
 
     if (isBackHome) {
       hasBackHome = true;
     } else if (unitPrice > 0) {
       hasPaidItems = true;
-      total += unitPrice;
+      total += itemTotal;
     }
 
-    // Add price information
+    // Add price information with quantity
     let priceHtml = '';
     if (isBackHome) {
       priceHtml = `<div class="item-price" style="font-size: 0.95rem; font-weight: 700; color: var(--success); margin-top: 4px;">Libera offerta</div>`;
     } else if (unitPrice > 0) {
-      priceHtml = `<div class="item-price" style="font-size: 0.95rem; font-weight: 700; color: var(--brand); margin-top: 4px;">€${unitPrice.toFixed(2)}</div>`;
+      priceHtml = `
+        <div style="margin-top: 4px;">
+          <div style="font-size: 0.85rem; color: var(--muted);">${quantity} × €${unitPrice.toFixed(2)}</div>
+          <div class="item-price" style="font-size: 0.95rem; font-weight: 700; color: var(--brand);">€${itemTotal.toFixed(2)}</div>
+        </div>
+      `;
     }
 
     const info = Object.assign(document.createElement('div'), { innerHTML: `<div class="title">${item.title}</div><div style="font-size: 0.9rem; color: var(--muted);">${shortDesc}</div>${priceHtml}` });
@@ -376,10 +425,11 @@ async function sendOrderEmails({ sessionCode, guestName, guestEmail, guestMessag
   let total = 0;
   let hasBackHome = false;
   for (const item of items) {
+    const quantity = item.quantity || 1;
     if (item.id === 'back-home') {
       hasBackHome = true;
     } else {
-      total += parseFloat(item.unit_price || 0);
+      total += parseFloat(item.unit_price || 0) * quantity;
     }
   }
 
@@ -394,6 +444,7 @@ async function sendOrderEmails({ sessionCode, guestName, guestEmail, guestMessag
       title: item.title,
       description: item.description || item.summary,
       unitPrice: parseFloat(item.unit_price || 0),
+      quantity: item.quantity || 1,
       isBackHome: item.id === 'back-home'
     })),
     total,
@@ -466,7 +517,7 @@ function initCartUI(){
       try {
         const items = cart.list().map(item => ({
           experienceId: item.id,
-          packagesCount: 1
+          packagesCount: item.quantity || 1
         }));
 
         const result = await window.supabaseAPI.createOrder({
@@ -626,24 +677,65 @@ function enableAddToCartButtons(){
   document.querySelectorAll('.card').forEach(card => {
     const experienceId = card.dataset.experienceId;
     const btn = card.querySelector('.cta');
+    const quantitySelector = card.querySelector('.quantity-selector');
+    const qtyDisplay = card.querySelector('[data-qty-display]');
+    const minusBtn = card.querySelector('[data-action="minus"]');
+    const plusBtn = card.querySelector('[data-action="plus"]');
+
     if(!btn || !experienceId) return;
+
+    const experience = DATA.find(d => d.id === experienceId);
+    if (!experience) return;
+
+    const isBackHome = experienceId === 'back-home';
+    const maxAvailable = experience.total_packages - experience.packages_sold;
+
+    // Current quantity state (not added to cart yet)
+    let currentQty = 1;
+
+    // Quantity selector handlers (if exists)
+    if (quantitySelector && qtyDisplay && minusBtn && plusBtn) {
+      const updateQtyDisplay = () => {
+        qtyDisplay.textContent = currentQty;
+        minusBtn.disabled = currentQty <= 1;
+        plusBtn.disabled = currentQty >= maxAvailable;
+      };
+
+      minusBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentQty > 1) {
+          currentQty--;
+          updateQtyDisplay();
+        }
+      });
+
+      plusBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (currentQty < maxAvailable) {
+          currentQty++;
+          updateQtyDisplay();
+        }
+      });
+
+      updateQtyDisplay();
+    }
 
     // Apply initial state
     refreshCTAStates();
 
-    // Add click handler
+    // Add to cart button handler
     btn.addEventListener('click', (e)=>{
       e.stopPropagation();
       if(cart.has(experienceId)) return;
 
       // Check availability before adding
-      const experience = DATA.find(d => d.id === experienceId);
-      if (experience && (experience.total_packages - experience.packages_sold) <= 0) {
+      if (!isBackHome && maxAvailable <= 0) {
         alert('Questa esperienza è esaurita.');
         return;
       }
 
-      cart.add(experienceId);
+      // Add with quantity
+      cart.add(experienceId, currentQty);
       refreshCTAStates();
       updateCartBadge();
 
